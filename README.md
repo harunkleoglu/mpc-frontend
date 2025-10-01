@@ -12,11 +12,20 @@ Each card includes an image, product name, description, price, category of the p
 
 There is a filter dropdown at top left of the screen which fully functional.
 
+There is a indicator that shows item count in the cart.
+
+## Responsiveness
+Images have a fixed height with object-cover to maintain aspect ratio without distortion.
+
+The grid uses grid-cols-1 sm:grid-cols-2 md:grid-cols-3 to adapt seamlessly across different screen sizes.
+
+Buttons dynamically switch between active and disabled states based on stock status.
+
 ## How to Run
 1. Clone the repository and install dependencies:
-   ```bash
-   npm install
-
+    ```bash
+    npm install
+    ```
 2. Create .env file and add the API url.
     ```bash
     NEXT_PUBLIC_API_URL="https://mpc-backend-xm2t.onrender.com"
@@ -29,4 +38,4 @@ There is a filter dropdown at top left of the screen which fully functional.
 4. For production build:
     ```bash
     npm run build && npm start
-
+    ```
