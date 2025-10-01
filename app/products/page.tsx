@@ -1,7 +1,8 @@
 "use client"
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { ProductModel } from "@/models/product";
 import { useCart } from "@/store/cartStore";
 
@@ -12,15 +13,11 @@ const fetchProducts = async (category?: string): Promise<ProductModel[]> => {
             : `${process.env.NEXT_PUBLIC_API_URL}/products`;
         
         const res = await axios.get(url);
-        return res.data.map((item: any) => ProductModel.fromApiResponse(item));
+        return res.data.map((item: unknown) => ProductModel.fromApiResponse(item));
     } catch (error) {
         console.error('Error fetching products:', error);
         return [];
     }
-}
-
-const addToCart = (productId: bigint) => {
-    console.log(`Adding product ${productId} to cart`);
 }
 
 const fetchCategories = async (): Promise<string[]> => {
@@ -30,8 +27,10 @@ const fetchCategories = async (): Promise<string[]> => {
         
         const categories = [...new Set(
             products
-                .map((product: any) => product.category)
-                .filter((category: any) => category && category.trim() !== '')
+                .map((product: unknown) => (product as { category?: string }).category)
+                .filter((category: unknown): category is string => 
+                    typeof category === 'string' && category.trim() !== ''
+                )
         )] as string[];
         
         return categories;
@@ -41,7 +40,7 @@ const fetchCategories = async (): Promise<string[]> => {
     }
 }
 
-function ProductsPage() {
+function ProductsPageContent() {
     const [products, setProducts] = useState<ProductModel[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
@@ -69,6 +68,8 @@ function ProductsPage() {
             const data = await fetchProducts(category);
             setProducts(data);
             setError(null);
+            console.log('Products loaded:', data.length, 'products');
+            console.log('First product imageUrl:', data[0]?.imageUrl);
         } catch (err) {
             setError('Failed to load products');
             console.error(err);
@@ -144,7 +145,7 @@ function ProductsPage() {
                 <div className="mb-6">
                     <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
                         <p className="text-indigo-800">
-                            Showing products in category: <span className="font-semibold">"{selectedCategory}"</span>
+                            Showing products in category: <span className="font-semibold">&quot;{selectedCategory}&quot;</span>
                             <button
                                 onClick={() => handleCategoryChange('')}
                                 className="ml-2 text-indigo-600 hover:text-indigo-800 underline text-sm"
@@ -174,12 +175,23 @@ function ProductsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {products.map(product => (
                         <div key={product.id.toString()} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                            {product.imageUrl && (
-                                <img 
+                            {product.imageUrl ? (
+                                <Image
                                     src={product.imageUrl} 
                                     alt={product.name || 'Product'} 
+                                    width={400}
+                                    height={192}
                                     className="w-full h-48 object-cover"
+                                    onError={(e) => {
+                                        console.log('Image failed to load:', product.imageUrl);
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                    }}
                                 />
+                            ) : (
+                                <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                    <span className="text-gray-500">No Image</span>
+                                </div>
                             )}
                             <div className="p-4">
                                 <h2 className="text-xl font-semibold text-gray-800 mb-2">
@@ -238,4 +250,18 @@ function ProductsPage() {
     )
 }
 
-export default ProductsPage
+function LoadingFallback() {
+    return (
+        <div className="flex justify-center items-center min-h-64">
+            <div className="text-lg text-gray-600">Loading products...</div>
+        </div>
+    );
+}
+
+export default function ProductsPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <ProductsPageContent />
+        </Suspense>
+    );
+}

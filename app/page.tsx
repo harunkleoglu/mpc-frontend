@@ -41,7 +41,7 @@ export default function Home() {
               Why Choose Shoppie?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We're committed to providing you with the best shopping experience possible
+              We&apos;re committed to providing you with the best shopping experience possible
             </p>
           </div>
 

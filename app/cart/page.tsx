@@ -1,6 +1,7 @@
 "use client"
 import { useCart } from "@/store/cartStore";
 import Link from "next/link";
+import Image from "next/image";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 
 export default function CartPage() {
@@ -10,8 +11,7 @@ export default function CartPage() {
         removeItem, 
         clearCart, 
         totalItems, 
-        totalPrice, 
-        formattedTotalPrice,
+        totalPrice,
         isEmpty 
     } = useCart();
 
@@ -22,7 +22,7 @@ export default function CartPage() {
                     <ShoppingBag className="mx-auto h-24 w-24 text-gray-300 mb-6" />
                     <h1 className="text-3xl font-bold text-gray-800 mb-4">Your Cart is Empty</h1>
                     <p className="text-gray-600 mb-8">
-                        Looks like you haven't added anything to your cart yet.
+                        Looks like you haven&apos;t added anything to your cart yet.
                     </p>
                     <Link
                         href="/products"
@@ -85,12 +85,17 @@ export default function CartPage() {
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <div className="flex-shrink-0">
                                         {item.product.imageUrl ? (
-                                            <img
+                                            <Image
                                                 src={item.product.imageUrl}
                                                 alt={item.product.name || 'Product'}
                                                 width={120}
                                                 height={120}
                                                 className="w-30 h-30 object-cover rounded-lg"
+                                                onError={(e) => {
+                                                    console.log('Image failed to load:', item.product.imageUrl);
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                }}
                                             />
                                         ) : (
                                             <div className="w-30 h-30 bg-gray-200 rounded-lg flex items-center justify-center">
